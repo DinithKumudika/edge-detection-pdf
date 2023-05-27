@@ -43,20 +43,36 @@ def main(argv):
                     print(OSError)
           
           for image in images:
-               image = cv2.imread(image, cv2.IMREAD_GRAYSCALE)
-               
-               image = resize(image)
-               
-               image = cv2.GaussianBlur(image, (5,5), cv2.BORDER_DEFAULT)
+               src_image = cv2.imread(image)
+               sized_image = resize(src_image)
+               grayscale_image = cv2.cvtColor(sized_image, cv2.COLOR_BGR2GRAY)
+               blurred_image = cv2.GaussianBlur(grayscale_image, (5,5), cv2.BORDER_DEFAULT)
                
                # edge cascade
-               t_lower = 125   #lower threshold
-               t_upper = 175   #upper threshold
-               image = cv2.Canny(image, t_lower, t_upper, L2gradient=True)
+               t_lower = 130   #lower threshold
+               t_upper = 225   #upper threshold
+               edged_image = cv2.Canny(image=blurred_image, threshold1=t_lower, threshold2=t_upper, L2gradient=True)
                
-               image = cv2.dilate(image,(7,7), iterations=2)
+               dilated_image = cv2.dilate(edged_image,(5,5), iterations=2)
                
-               cv2.imshow('Image 1', image)
+               # ret, threshold_image = cv2.threshold(grayscale_image, 100, 255, cv2.THRESH_BINARY)
+               
+               contours, hierarchy = cv2.findContours(dilated_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+               
+               answer_contours = []
+               
+               for contour in contours:
+                    x, y, w, h = cv2.boundingRect(contour)
+                    aspect_ratio = w / h
+                    
+                    if aspect_ratio > 1.4 and w > 50 and h > 20:
+                         answer_contours.append(contour)
+                         cv2.drawContours(sized_image, [contour], -1, (0,255,0), thickness=2)
+                         
+               print(len(answer_contours))
+               
+               cv2.imshow('dilated', dilated_image)
+               cv2.imshow('After Contouring', sized_image)
                cv2.waitKey(0)
                cv2.destroyAllWindows()
 
