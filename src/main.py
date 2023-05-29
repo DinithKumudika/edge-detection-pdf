@@ -55,19 +55,25 @@ def main(argv):
                
                dilated_image = cv2.dilate(edged_image,(5,5), iterations=2)
                
-               # ret, threshold_image = cv2.threshold(grayscale_image, 100, 255, cv2.THRESH_BINARY)
-               
-               contours, hierarchy = cv2.findContours(dilated_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+               contours, hierarchy = cv2.findContours(dilated_image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
                
                answer_contours = []
                
-               for contour in contours:
+               for i, contour in enumerate(contours):
+                    
+                    if i == 0:
+                         continue
+                    
+                    # precision for approximation
+                    # epsilon = 0.01 * cv2.arcLength(contour, True)
+                    # approx = cv2.approxPolyDP(contour, epsilon, True)
+                    
                     x, y, w, h = cv2.boundingRect(contour)
                     aspect_ratio = w / h
                     
-                    if aspect_ratio > 1.4 and w > 50 and h > 20:
+                    if aspect_ratio > 1 and w > 50 and h > 20 and cv2.contourArea(contour) > 100:
                          answer_contours.append(contour)
-                         cv2.drawContours(sized_image, [contour], -1, (0,255,0), thickness=2)
+                         cv2.drawContours(sized_image, [contour], -1, (0,255,0), thickness=1)
                          
                print(len(answer_contours))
                
